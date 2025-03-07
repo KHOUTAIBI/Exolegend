@@ -24,7 +24,7 @@ inline void command(Gladiator* gladiator){
         
     }
     else if (currState == STATES::ATTACK){
-        attackAdvers(gladiator);
+        
     }
     else if (currState == STATES::FLEE){
         

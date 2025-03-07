@@ -15,50 +15,15 @@ float normRobot(float x, float y){
 }
 
 // funciton returning distance between two robots
-float distanceTwoRobots(RobotData gladiatorData, RobotData gladiatorAdvData){
+float distanceTwoRobots(Position gladiatorPos, Position gladiatorAdvPos){
 
     return normRobot(
-        gladiatorData.position.x - gladiatorAdvData.position.x,
-        gladiatorData.position.y - gladiatorAdvData.position.y
+        gladiatorPos.x - gladiatorAdvPos.x,
+        gladiatorPos.y - gladiatorAdvPos.y
     );
 }
 
-// Function returning array of position from a robot to all adversaries
-// Not using vectors in order to save memory, mallocing fout floats is better
-float* distanceToAllAdv(Gladiator* gladiator,Gladiator* friendlygladiator){
-    
-    RobotList listAdv = gladiator->game->getPlayingRobotsId();
-    RobotData gladiatorData = gladiator->robot->getData();
-    RobotData firendlygladData = gladiator->robot->getData();
-    float distancesTogladiator[4];
 
-    // First appending the gladiator data
-
-    for (int i = 0; i < 4; i++){
-        if (listAdv.ids[i] != ID1 && listAdv.ids[i] != ID2){  
-            
-            distancesTogladiator[i] = distanceTwoRobots(
-                gladiatorData,
-                gladiator->game->getOtherRobotData(listAdv.ids[i])
-            );
-
-        }
-    }
-
-    // Then appending the adversary
-    for (int i = 0; i < 4; i++){
-        if (listAdv.ids[i] != ID1 && listAdv.ids[i] != ID2){  
-            
-            distancesTogladiator[i] = distanceTwoRobots(
-                firendlygladData,
-                gladiator->game->getOtherRobotData(listAdv.ids[i])
-            );
-
-        }
-    }
-
-    return &distancesTogladiator[0]; 
-}
 
 
 #endif
