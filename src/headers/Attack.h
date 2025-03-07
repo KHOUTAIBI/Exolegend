@@ -12,7 +12,8 @@ inline void moveAgress(Gladiator* gladiator){
 
 // Function to decide when to attack a robot
 inline void attack(Gladiator* gladiator , byte adverId){  
-    
+
+    // getting position data
     Position gladiatorPosition = gladiator->robot->getData().position;
     Position gladiatorAdvposition = gladiator->game->getOtherRobotData(adverId).position;  
 

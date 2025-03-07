@@ -1,11 +1,10 @@
 #include "gladiator.h"
 #include "./headers/Attack.h"
 #include "./headers/SomethingRobotics.h"
+#include "./headers/tools.h"
 
-Gladiator *gladiator;
-Gladiator *othergladiator;
+Gladiator *gladiator; // init gladiator
 RobotData gadiatorData; // data of the robots
-RobotData othergladiatorData;
 
 void reset();
 void setup(){
@@ -23,6 +22,8 @@ void loop(){
         gladiator->log("Game has begun"); // GFA 4.5.1
         gladiator->control->setWheelSpeed(WheelAxis::LEFT, 0.2); 
         gladiator->control->setWheelSpeed(WheelAxis::RIGHT, 0.2);
+        float* distances = distanceToAllAdvs(gladiator);
+        std::cout <<distances[0];
         attack(gladiator, 20);
     }
     else{

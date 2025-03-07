@@ -23,7 +23,25 @@ float distanceTwoRobots(Position gladiatorPos, Position gladiatorAdvPos){
     );
 }
 
+// Function which returns the distances to all robots
+float* distanceToAllAdvs(Gladiator* gladiator){
 
+    float distancesToAdvs[2];
+    uint8_t* Listids[4];
+
+    for (int i = 0; i < 4; i++){
+        if (Listids[i] != ID1 && Listids[i] != ID2){
+            distancesToAdvs[i] = distanceTwoRobots(gladiator->robot->getData().position, gladiator->game->getOtherRobotData(Listids[i]).position);
+        }
+    }
+
+    // sorting an easily sortable array
+    if (distancesToAdvs[1] <= distancesToAdvs[0]){
+        distancesToAdvs[0] = distancesToAdvs[1];
+    }
+
+    return &distancesToAdvs[0];
+}
 
 
 #endif
