@@ -7,8 +7,9 @@
 #include "gladiator.h"
 #include "bomb.h"
 #include "flee.h"
+#include "headers/Attack.h"
 
-// Defining the states 
+// Defining the states
 enum STATES{
     MOVE,
     ATTACK,
@@ -16,10 +17,10 @@ enum STATES{
     BOMB,
 };
 
+
 STATES currState = STATES::MOVE;
 
 inline void command(Gladiator * gladiator){
-    
     if (currState == STATES::MOVE){
         
     }
@@ -33,6 +34,4 @@ inline void command(Gladiator * gladiator){
         dropbomb(gladiator, currState);
     }
 }
-
-
 #endif
