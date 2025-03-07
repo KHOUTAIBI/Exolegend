@@ -5,7 +5,10 @@
 #include <cstdio>
 #include <iostream>
 
-// Defining the states 
+#include "gladiator.h"
+#include "headers/Attack.h"
+
+// Defining the states and pins
 enum STATES{
     MOVE,
     ATTACK,
@@ -13,14 +16,15 @@ enum STATES{
     BOMB,
 };
 
+
 STATES currState = STATES::MOVE;
 
-inline void command(){
+inline void command(Gladiator* gladiator){
     if (currState == STATES::MOVE){
         
     }
     else if (currState == STATES::ATTACK){
-        
+        attackAdvers(gladiator);
     }
     else if (currState == STATES::FLEE){
         
@@ -29,6 +33,8 @@ inline void command(){
 
     }
 }
+
+
 
 
 #endif
