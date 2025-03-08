@@ -9,6 +9,13 @@ void setup(){
     gladiator = new Gladiator(); //gladiator 1, friendly
     gladiator->game->onReset(&reset); // GFA 4.4.1
     gladiator->weapon->initWeapon(WeaponPin::M1, WeaponMode::SERVO); //Sertting the weapong mode of the robot to servo
+    if(gladiator->robot->getData().id == 37){
+        gladiator->robot->setCalibrationOffset(0.0103, -0.0053, 0);
+    }
+    if(gladiator->robot->getData().id == 40){
+        gladiator->robot->setCalibrationOffset(0.0111, -0.0037, 0);
+    }
+    
 }
 
 void reset(){

@@ -1,8 +1,9 @@
 #include "./headers/bomb.h"
 
+MazeSquare * strat[2];
+
 bool fleeStrat(Gladiator * gladiator){
     bool result = true;
-    MazeSquare * strat[2];
     MazeSquare * start = gladiator->maze->getNearestSquare();
 
     //etablir la strat
@@ -42,13 +43,10 @@ bool fleeStrat(Gladiator * gladiator){
         result = false;
     }
 
-    if(strat[0]->danger > 0 || strat[1]->danger > 0){
+    if ((strat[0]->danger > 0 || strat[1]->danger > 0)&& result){
         result = false;
     }
 
-    while (!toGo.empty()) toGo.pop();
-    toGo.push(sqToCo(strat[0]));
-    toGo.push(sqToCo(strat[1]));
     return result;
 }
 
@@ -63,10 +61,12 @@ int dropBombAndFlee(Gladiator * gladiator){
     if(escape && gladiator->weapon->getBombCount() && 
         (gladiator->maze->getNearestSquare()->possession != gladiator->robot->getData().teamId)) {
         gladiator->weapon->dropBombs(1);
+        while (!toGo.empty()) toGo.pop();
+        toGo.push(sqToCo(strat[0]));
+        toGo.push(sqToCo(strat[1]));
         return 0;
     }
     else {
-        while (!toGo.empty()) toGo.pop();
         return 1;
     }
 }

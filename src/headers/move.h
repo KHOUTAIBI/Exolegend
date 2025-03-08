@@ -10,6 +10,7 @@
 #include <map>
 #include <gladiator.h>
 #include <cmath>
+#include "tools.h"
 
 using coord = std::pair<byte, byte>;
 typedef struct Node {
@@ -111,7 +112,7 @@ class Vector2
 };
 enum class StateMove { STAY, BOMB, FLEE };
 
-bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh = 0.2, float defaultSpeed = 0.2);
+bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh = 0.2, float defaultSpeed = 0.2, float defaultRotSpeed = 0.08);
 StateMove move(Gladiator* gladiator);
 int isOutsideMaze(Gladiator* gladiator);
 coord sqToCo(const MazeSquare* square);
