@@ -1,4 +1,4 @@
-#include "gladiator.h"
+    #include "gladiator.h"
 #include "./headers/SomethingRobotics.h"
 
 Gladiator *gladiator; // init gladiator
@@ -19,20 +19,12 @@ void reset(){
 void loop(){
     
     if (gladiator->game->isStarted()){
-        uint8_t Listids[2] = {
-            gladiator->game->getPlayingRobotsId().ids[0],
-            gladiator->game->getPlayingRobotsId().ids[1],
-        };
-
-        gladiator->log("Game has begun"); // GFA 4.5.1
-        std::vector<float> distances = distanceToAllAdvs(gladiator);
-        gladiator->log("%f",distances[0]);
-        gladiator->log("%f",distances[1]);
-        if (gladiator->robot->getData().id != Listids[0]) attack(gladiator, Listids[0]);
-        else attack(gladiator, Listids[1]);
+        
+        // gladiator->log("Game has begun"); // GFA 4.5.1
+        command(gladiator);
     }
     else{
-        gladiator->log("Game has not Startd yet"); // GFA 4.5.1
+        // gladiator->log("Game has not Startd yet"); // GFA 4.5.1
     }
 
     delay(300);

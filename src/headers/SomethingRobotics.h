@@ -1,11 +1,7 @@
 #ifndef SOMETHINGROBOTICS_H
 #define SOMETHINGROBOTICS_H
 
-#include <algorithm>
-#include <cstdio>
-#include <iostream>
-#include <gladiator.h>
-#include "./headers/Attack.h"
+#include "move.h"
 
 // Defining the states
 enum STATES{
@@ -15,10 +11,11 @@ enum STATES{
     BOMB,
 };
 
+STATES currState = STATES::MOVE;
 
-inline void command(Gladiator * gladiator, STATES& currState){
+inline void command(Gladiator* gladiator){
     if (currState == STATES::MOVE){
-        
+        move(gladiator);
     }
     else if (currState == STATES::ATTACK){
         
