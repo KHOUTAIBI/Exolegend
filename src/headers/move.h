@@ -18,6 +18,11 @@ typedef struct Node {
     Node* next = nullptr; 
 } Node;
 
+extern Position nearestPOI;
+extern std::queue<coord> toGo;
+extern Position lastPos;
+extern float mazeSize;
+
 inline float moduloPi(float a) // return angle in [-pi; pi]
 {
     return (a < 0.0) ? (std::fmod(a - M_PI, 2 * M_PI) + M_PI) : (std::fmod(a + M_PI, 2 * M_PI) - M_PI);
@@ -105,56 +110,7 @@ class Vector2
     float _x, _y;
 };
 
-inline bool aim(Gladiator *gladiator, const Vector2 &target, bool showLogs)
-{
-    constexpr float ANGLE_REACHED_THRESHOLD = 0.4;
-    constexpr float POS_REACHED_THRESHOLD = 0.1;
-
-    auto posRaw = gladiator->robot->getData().position;
-    Vector2 pos{posRaw.x, posRaw.y};
-
-    Vector2 posError = target - pos;
-
-    float targetAngle = posError.angle();
-    float angleError = moduloPi(targetAngle - posRaw.a);
-
-    bool targetReached = false;
-    float leftCommand = 0.f;
-    float rightCommand = 0.f;
-    printf("error : %lf\n", abs(angleError));
-    if (posError.norm2() < POS_REACHED_THRESHOLD) //
-    {
-        targetReached = true;
-    }
-    else if (abs(angleError) > ANGLE_REACHED_THRESHOLD)
-    {   
-        float factor = 0.05;
-        if (angleError < 0)
-            factor = -factor;
-        rightCommand = factor;
-        leftCommand = -factor;
-    }
-    else
-    {
-        float factor = 0.2;
-        rightCommand = factor; //+angleError*0.1  => terme optionel, "pseudo correction angulaire";
-        leftCommand = factor;  //-angleError*0.1   => terme optionel, "pseudo correction angulaire";
-    }
-
-    gladiator->control->setWheelSpeed(WheelAxis::LEFT, leftCommand);
-    gladiator->control->setWheelSpeed(WheelAxis::RIGHT, rightCommand);
-
-    if (showLogs || targetReached)
-    {
-        gladiator->log("ta %f, ca %f, ea %f, tx %f cx %f ex %f ty %f cy %f ey %f", targetAngle, posRaw.a, angleError,
-                       target.x(), pos.x(), posError.x(), target.y(), pos.y(), posError.y());
-    }
-
-    return targetReached;
-}
-
-
+bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh = 0.2, float defaultSpeed = 0.2);
 void move(Gladiator* gladiator);
-void goTo(Gladiator* gladiator, Position target, Position pos);
-
+int isOutsideMaze(Gladiator* gladiator);
 #endif

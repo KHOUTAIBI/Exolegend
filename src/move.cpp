@@ -1,11 +1,9 @@
 #include "headers/move.h"
 
-bool gotPOI = true;
 Position nearestPOI = { -1, -1, -1};
 std::queue<coord> toGo;
 Position lastPos = { 0, 0, 0 };
 float mazeSize = -1;
-bool firstMove = true;
 
 double distance(Position p1, Position p2) {
     double x = p1.x - p2.x;
@@ -57,6 +55,7 @@ void BFS(Gladiator* gladiator, coord s) {
 
         const MazeSquare* square = gladiator->maze->getSquare(nS.first, nS.second);
 
+        // We can update here : add a selection over the color of the ground
         if (square->coin.value > 0) {
             nodesToQueue(parent);
             break;
@@ -113,56 +112,113 @@ void BFS(Gladiator* gladiator, coord s) {
     }
 }
 
+bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float defaultSpeed) {
+    float POS_REACHED_THRESHOLD = 0.1;
+
+    auto posRaw = gladiator->robot->getData().position;
+    Vector2 pos{posRaw.x, posRaw.y};
+
+    Vector2 posError = target - pos;
+
+    float targetAngle = posError.angle();
+    float angleError = moduloPi(targetAngle - posRaw.a);
+
+    bool targetReached = false;
+    float leftCommand = 0.f;
+    float rightCommand = 0.f;
+    
+    if (posError.norm2() < POS_REACHED_THRESHOLD) {
+        targetReached = true;
+    }
+    else if (abs(angleError) > angThresh && abs(angleError) < M_PI - angThresh) {   
+        float factor = 0.05;
+        if (angleError < 0)
+            factor = -factor;
+        rightCommand = factor;
+        leftCommand = -factor;
+    }
+    else {
+        float factor = defaultSpeed;
+        if (abs(angleError) > M_PI - angThresh) factor = -factor;
+        rightCommand = factor; //+angleError*0.1  => terme optionel, "pseudo correction angulaire";
+        leftCommand = factor;  //-angleError*0.1   => terme optionel, "pseudo correction angulaire";
+    }
+
+    gladiator->control->setWheelSpeed(WheelAxis::LEFT, leftCommand);
+    gladiator->control->setWheelSpeed(WheelAxis::RIGHT, rightCommand);
+
+    return targetReached;
+}
+
 bool isCloseEnough(Position gPos) {
     // printf("%lf\n", distance(gPos, nearestPOI));
     return distance(gPos, nearestPOI) < 0.1;
 }
 
 void move(Gladiator* gladiator) {
-    // nearestPOI = findNearestPOI(gladiator);
     Position gladiatorPos = gladiator->robot->getData().position;
-    if (nearestPOI.x == -1) nearestPOI = gladiatorPos;
-
-    // if (gladiator->weapon->canDropBombs(1)) {
-    //     gladiator->weapon->dropBombs(1);
-    // }
-
-    float newSize = gladiator->maze->getCurrentMazeSize();
-
-    if (newSize != mazeSize) {
-        mazeSize = newSize;
+    int outside = isOutsideMaze(gladiator);
+    if (outside == 1) {
+        aim(gladiator, { 1.5, gladiatorPos.y }, (M_PI / 2.0), 0.5);
         while (!toGo.empty()) toGo.pop();
     }
-
-    const MazeSquare* square = gladiator->maze->getNearestSquare();
-    
-    // Construct toGo
-    if (toGo.empty() && isCloseEnough(gladiatorPos)) {
-        coord co = sqToCo(square);
-        printf("Starting with : %x %x\n", co.first, co.second);
-        BFS(gladiator, co);
+    else if (outside == 2) {
+        aim(gladiator, { gladiatorPos.x, 1.5 }, (M_PI / 2.0), 0.5);
+        while (!toGo.empty()) toGo.pop();
     }
+    else {
+        // nearestPOI = findNearestPOI(gladiator);
+        if (nearestPOI.x == -1) nearestPOI = gladiatorPos;
 
-    // while (!toGo.empty()) {
-    //     // puts("Not empty");
-    //     coord co = toGo.front();
-    //     printf("CO : %x %x\n", co.first, co.second);
-    //     toGo.pop();
-    // }
+        int newSize = gladiator->maze->getCurrentMazeSize();
+        if (mazeSize != newSize) {
+            mazeSize = newSize;
+            nearestPOI = gladiatorPos;
+            while (!toGo.empty()) toGo.pop();
+        }
 
-    if (!toGo.empty() && isCloseEnough(gladiatorPos)) {
-        coord co = toGo.front();
-        printf("CO : %x %x\n", co.first, co.second);
-        // nearestPOI = POIFromSquare(gladiatorPos, gladiator->maze->getSquare(co.first, co.second));
-        nearestPOI = getSquarePosition(gladiator->maze->getSquare(co.first, co.second));
-        printf("NPOI : %lf %lf\n", nearestPOI.x, nearestPOI.y);
-        // printf("Element is : %x %x\n", co.first, co.second);
-        toGo.pop();
-        puts("---");
+        // if (gladiator->weapon->getBombCount()) {
+        //     gladiator->weapon->dropBombs(1);
+        // }
+
+        const MazeSquare* square = gladiator->maze->getNearestSquare();
+        
+        // Construct toGo
+        if (toGo.empty() && isCloseEnough(gladiatorPos)) {
+            coord co = sqToCo(square);
+            // printf("Starting with : %x %x\n", co.first, co.second);
+            BFS(gladiator, co);
+        }
+        if (!toGo.empty() && isCloseEnough(gladiatorPos)) {
+            coord co = toGo.front();
+            // printf("CO : %x %x\n", co.first, co.second);
+            nearestPOI = getSquarePosition(gladiator->maze->getSquare(co.first, co.second));
+            // printf("NPOI : %lf %lf\n", nearestPOI.x, nearestPOI.y);
+            toGo.pop();
+            // puts("---");
+        }
+
+        // goTo(gladiator, nearestPOI, gladiatorPos);
+        aim(gladiator, { nearestPOI.x, nearestPOI.y });
     }
-
-    // goTo(gladiator, nearestPOI, gladiatorPos);
-    aim(gladiator, { nearestPOI.x, nearestPOI.y }, false);
 
     lastPos = gladiatorPos;
+}
+
+int isOutsideMaze(Gladiator *gladiator) {
+    float mazeSize = gladiator->maze->getCurrentMazeSize();
+    Position position = gladiator->robot->getData().position;
+    float half = mazeSize / 2.0f;
+    double distX = distance({ position.x, 0, 0 }, { 1.5, 0, 0 });
+    double distY = distance({ 0, position.y, 0 }, { 0, 1.5, 0 });
+    bool result = 0;
+
+    if (distX > half) {
+        result = 1;
+    }
+    else if (distY > half) {
+        result = 2;
+    }
+    
+    return result;
 }
