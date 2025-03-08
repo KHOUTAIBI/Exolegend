@@ -156,5 +156,6 @@ inline bool aim(Gladiator *gladiator, const Vector2 &target, bool showLogs)
 
 void move(Gladiator* gladiator);
 void goTo(Gladiator* gladiator, Position target, Position pos);
+Position getSquarePosition(const MazeSquare* square);
 
 #endif
