@@ -79,6 +79,7 @@ int dropBombAndFlee(Gladiator * gladiator){
         gladiator->log("the best second strat is  (%i,%i)",bestStrat.second->i,bestStrat.second->j);
         toGo.push(squareToCoord(bestStrat.first));
         toGo.push(squareToCoord(bestStrat.second));
+        mode = MODE::FLEE;
         return 0;
     }
     else {

@@ -17,6 +17,11 @@ typedef struct Node {
     Node* next = nullptr; 
 } Node;
 
+// FLAG for the state machine after the control function
+enum class StateMove { STAY, BOMB, FLEE };
+enum class WANTED { FREE_SQUARE, FREE_BOMB, BOMB, DANGER_FREE };
+enum class MODE { FLEE, EXPLORE, FAST };
+
 // Extern value
 extern Position POI; // The default target the robot is trying to meet
 extern bool reachedPOI;
@@ -24,10 +29,7 @@ extern const MazeSquare* squarePOI;
 extern std::queue<coord> toGo;
 extern float mazeSize;
 extern bool haveBeenOut;
-
-// FLAG for the state machine after the control function
-enum class StateMove { STAY, BOMB, FLEE };
-enum class WANTED { FREE_SQUARE, FREE_BOMB, BOMB, DANGER_FREE };
+extern MODE mode;
 
 bool aim(Gladiator *gladiator, 
         const Vector2 &target, 

@@ -7,6 +7,7 @@ const MazeSquare* squarePOI = nullptr;
 std::queue<coord> toGo;
 float mazeSize = -1;
 bool haveBeenOut = false;
+MODE mode = MODE::EXPLORE;
 
 // Non reset
 float baseDistance = 0.0;
@@ -64,6 +65,7 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
 
     return targetReached;
 }
+
 float speed = 0.0f;
 
 StateMove control(Gladiator* gladiator) {
@@ -76,6 +78,7 @@ StateMove control(Gladiator* gladiator) {
         aim(gladiator, { 1.5, 1.5 }, 0.2, 1.0, 0.5);
         while (!toGo.empty()) toGo.pop();
         toGo.push(std::make_pair(6, 6));
+        mode = MODE::FAST;
         delay(50);
     }
     else {
@@ -89,10 +92,26 @@ StateMove control(Gladiator* gladiator) {
         
         // Detect if the arena size changed and reset our path
         int newSize = gladiator->maze->getCurrentMazeSize();
-        if (mazeSize != newSize) {
+        if (mazeSize == -1) {
+            mazeSize = newSize;
+        }
+        else if (mazeSize != newSize) {
             mazeSize = newSize;
             POI = gPos;
             while (!toGo.empty()) toGo.pop();
+        }
+
+        // Adapt the speed to the mode
+        switch (mode) {
+            case MODE::EXPLORE:
+            speed = 0.3f;
+            break;
+            case MODE::FLEE:
+            speed = 0.5f;
+            break;
+            case MODE::FAST:
+            speed = 0.8f;
+            break;
         }
 
         // If toGo is empty and the current POI is reached we can pursue 
@@ -129,15 +148,14 @@ StateMove control(Gladiator* gladiator) {
             // gladiator->log("Target : %d %d\n", co.first, co.second);
             squarePOI = gladiator->maze->getSquare(co.first, co.second);
             POI = getSquarePosition(squarePOI);
+            mode = MODE::EXPLORE;
             // Handle the case where he want to go outside
             if (isOutsideMaze(gladiator, POI)) {
                 POI = { 1.5, 1.5 };
                 squarePOI = gladiator->maze->getSquare(6, 6);
                 while (!toGo.empty()) toGo.pop();
                 speed = 1.0f;
-            }
-            else {
-                speed = 0.5f;
+                mode = MODE::FAST;
             }
             // Compute the baseDistance
             baseDistance = distance(gPos, POI);
@@ -148,7 +166,7 @@ StateMove control(Gladiator* gladiator) {
         if (squarePOI->danger == 0 || // We are in danger
             square->danger >= squarePOI->danger // The current square is worst than the POI
         ) {
-            reachedPOI = aim(gladiator, { POI.x, POI.y }, 0.2f, speed, 0.1f);
+            reachedPOI = aim(gladiator, { POI.x, POI.y }, 0.15f, speed, 0.1f);
         }
     }
 
