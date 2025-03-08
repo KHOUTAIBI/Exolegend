@@ -26,10 +26,11 @@ coord sqToCo(const MazeSquare* square) {
 void goRight(Gladiator *gladiator) {
     const MazeSquare* square = gladiator->maze->getNearestSquare();
     bool nextIsSet = false;
+    const MazeSquare* next = nullptr;
     while (!nextIsSet) {
         switch (orientation) {
             case 0: // NORTH
-            const MazeSquare* next = square->northSquare;
+            next = square->northSquare;
             if (next != nullptr && next->danger < 1) {
                 nearestPOI = getSquarePosition(next);
             }
@@ -39,7 +40,7 @@ void goRight(Gladiator *gladiator) {
             break;
 
             case 1: // EAST
-            const MazeSquare* next = square->eastSquare;
+            next = square->eastSquare;
             if (next != nullptr && next->danger < 1) {
                 nearestPOI = getSquarePosition(next);
             }
@@ -49,7 +50,7 @@ void goRight(Gladiator *gladiator) {
             break;
 
             case 2: // SOUTH
-            const MazeSquare* next = square->southSquare;
+            next = square->southSquare;
             if (next != nullptr && next->danger < 1) {
                 nearestPOI = getSquarePosition(next);
             }
@@ -59,7 +60,7 @@ void goRight(Gladiator *gladiator) {
             break;
 
             case 3: // WEST
-            const MazeSquare* next = square->westSquare;
+            next = square->westSquare;
             if (next != nullptr && next->danger < 1) {
                 nearestPOI = getSquarePosition(next);
             }
@@ -107,9 +108,6 @@ void BFS(Gladiator* gladiator, coord s) {
             nodesToQueue(parent);
             break;
         }
-        // else if (square->possession != gladiator->robot->getData().teamId) {
-        //     bestCase = parent;
-        // }
 
         if (square->northSquare != nullptr ) {
             coord north = sqToCo(square->northSquare);
@@ -155,12 +153,7 @@ void BFS(Gladiator* gladiator, coord s) {
                 visited.insert(east);
             }
         }
-        // depth--;
-        // if (depth == 0) break;
     }
-    // if (bestCase != nullptr) {
-    //     nodesToQueue(bestCase);
-    // }
     for (const auto& node : nodes) {
         delete node.second;
     }
@@ -212,6 +205,7 @@ bool isCloseEnough(Position gPos) {
 StateMove move(Gladiator* gladiator) {
     StateMove result = StateMove::STAY;
     Position gladiatorPos = gladiator->robot->getData().position;
+
     // If outside the maze, run back !!!!
     int outside = isOutsideMaze(gladiator);
     if (outside) {
@@ -221,16 +215,26 @@ StateMove move(Gladiator* gladiator) {
         isOutside = true;
     }
     else if (isOutside) {
-        gladiator->log("Is on the border");
-        go_to(gladiator, { 1.5, 1.5, 0 }, gladiatorPos);
-        if (gladiator->robot->getData().speedLimit != 0.1) {
+        aim(gladiator, { 1.5, 1.5 }, (M_PI / 4.0), 0.5, 0.2);
+        if (gladiator->robot->getData().speedLimit > 0.1) {
             isOutside = false;
+            nearestPOI = gladiatorPos;
+        }
+    }
+    else if (gladiator->robot->getData().speedLimit == 0.1) {
+        const MazeSquare* square = gladiator->maze->getNearestSquare();
+        Position pos = getSquarePosition(square);
+        if (square->danger < 1) {
+            aim(gladiator, { pos.x, pos.y }, 0.2f, 0.15f, 0.08);
+        }
+        else {
+            aim(gladiator, { 1.5, 1.5 },  0.2f, 0.15f, 0.08);
         }
     }
     else {
         // nearestPOI = findNearestPOI(gladiator);
         if (nearestPOI.x == -1) nearestPOI = gladiatorPos;
-
+        
         int newSize = gladiator->maze->getCurrentMazeSize();
         if (mazeSize != newSize) {
             mazeSize = newSize;
@@ -259,6 +263,7 @@ StateMove move(Gladiator* gladiator) {
         if (!toGo.empty() && isCloseEnough(gladiatorPos)) {
             coord co = toGo.front();
             // printf("CO : %x %x\n", co.first, co.second);
+            gladiator->log("CO : %d %d\n", co.first, co.second);
             MazeSquarePoI = gladiator->maze->getSquare(co.first, co.second);
             nearestPOI = getSquarePosition(MazeSquarePoI);
             // TODO add detection of danger level
@@ -267,10 +272,9 @@ StateMove move(Gladiator* gladiator) {
             // puts("---");
         }
         
-
         // goTo(gladiator, nearestPOI, gladiatorPos);
-        if (MazeSquarePoI->danger == 0 || square->danger >= MazeSquarePoI->danger) aim(gladiator, { nearestPOI.x, nearestPOI.y }, 0.2f, 0.2f);
-    
+        if (MazeSquarePoI->danger == 0 || square->danger >= MazeSquarePoI->danger) aim(gladiator, { nearestPOI.x, nearestPOI.y }, 0.2f, 0.15f, 0.08);
+        
     }
     lastPos = gladiatorPos;
     return result;

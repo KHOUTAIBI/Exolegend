@@ -10,7 +10,7 @@ void setup(){
     gladiator->game->onReset(&reset); // GFA 4.4.1
     gladiator->weapon->initWeapon(WeaponPin::M1, WeaponMode::SERVO); //Sertting the weapong mode of the robot to servo
     if(gladiator->robot->getData().id == 37){
-        gladiator->robot->setCalibrationOffset(0.0103, -0.0053, 0);
+        gladiator->robot->setCalibrationOffset(0.0192, 0.0011, 0);
     }
     if(gladiator->robot->getData().id == 40){
         gladiator->robot->setCalibrationOffset(0.0111, -0.0037, 0);
@@ -36,5 +36,5 @@ void loop(){
         // gladiator->log("Game has not Startd yet"); // GFA 4.5.1
     }
 
-    delay(300);
+    delay(5);
 }
