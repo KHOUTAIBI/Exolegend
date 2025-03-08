@@ -51,7 +51,7 @@ bool fleeStrat(Gladiator * gladiator, FleeStrat & bestStrat){
         return false;
     }
 
-    bestStrat = * stratSet.begin();
+    bestStrat = stratSet[0];
     for(auto S : stratSet){
         if (S.distanceFromCenter < bestStrat.distanceFromCenter){
             bestStrat = S;
@@ -67,7 +67,7 @@ bool canDropBomb(Gladiator * gladiator, MazeSquare ** strat){
 
 int dropBombAndFlee(Gladiator * gladiator){
     FleeStrat bestStrat;
-    bool escape = fleeStrat(gladiator, bestStrat) && gladiator->weapon->getBombCount() && (gladiator->maze->getNearestSquare()->possession != gladiator->robot->getData().teamId);
+    bool escape = fleeStrat(gladiator, bestStrat) && (gladiator->weapon->getBombCount() > 0) && (gladiator->maze->getNearestSquare()->possession != gladiator->robot->getData().teamId);
 
     if(escape) {
         gladiator->weapon->dropBombs(gladiator->weapon->getBombCount());
