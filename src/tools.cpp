@@ -1,4 +1,4 @@
-#include "./headers/tools.h"
+#include "headers/tools.h"
 
 float kw = 1.2;
 float kv = 1.f;
@@ -42,7 +42,6 @@ void go_to(Gladiator * gladiator, Position cons, Position pos){
     gladiator->control->setWheelSpeed(WheelAxis::LEFT, consvl, false);  // GFA 3.2.1
 }
 
-
 // norm function, tool to be used later
 float normRobot(float x, float y){
     return std::sqrt(
@@ -51,7 +50,7 @@ float normRobot(float x, float y){
 }
 
 // funciton returning distance between two robots
-float distanceTwoRobots(Position gladiatorPos, Position gladiatorAdvPos){
+float distance(Position gladiatorPos, Position gladiatorAdvPos){
 
     return normRobot(
         gladiatorPos.x - gladiatorAdvPos.x,
@@ -72,7 +71,7 @@ std::vector<float> distanceToAllAdvs(Gladiator* gladiator){
 
     for (int i = 0; i < 4; i++){
         if (Listids[i] != ID1 && Listids[i] != ID2){
-            distancesToAdvs.push_back(distanceTwoRobots(gladiator->robot->getData().position, gladiator->game->getOtherRobotData(Listids[i]).position));
+            distancesToAdvs.push_back(distance(gladiator->robot->getData().position, gladiator->game->getOtherRobotData(Listids[i]).position));
         }
     }
 
@@ -82,4 +81,27 @@ std::vector<float> distanceToAllAdvs(Gladiator* gladiator){
     }
 
     return distancesToAdvs;
+}
+
+Position getSquarePosition(const MazeSquare* square) {
+    return square->coin.p;
+}
+
+bool isOutsideMaze(Gladiator* gladiator, const Position& pos) {
+    float currMazeSize = gladiator->maze->getCurrentMazeSize();
+    float half = currMazeSize / 2.0f;
+    double distX = distance({ pos.x, 0, 0 }, { 1.5, 0, 0 });
+    double distY = distance({ 0, pos.y, 0 }, { 0, 1.5, 0 });
+    bool result = false;
+
+    if (distX > half || distY > half) {
+        result = true;
+    }
+    
+    return result;
+}
+
+float moduloPi(float a) // return angle in [-pi; pi]
+{
+    return (a < 0.0) ? (std::fmod(a - M_PI, 2 * M_PI) + M_PI) : (std::fmod(a + M_PI, 2 * M_PI) - M_PI);
 }

@@ -15,7 +15,7 @@ STATES currState = STATES::MOVE;
 
 inline void command(Gladiator* gladiator){
     if (currState == STATES::MOVE){
-        StateMove nextState = move(gladiator);
+        StateMove nextState = control(gladiator);
         if (nextState == StateMove::BOMB) {
             currState = STATES::BOMB;
         }
@@ -26,10 +26,8 @@ inline void command(Gladiator* gladiator){
     else if (currState == STATES::FLEE){
     }
     else if (currState == STATES::BOMB) {
-        puts("BOMB");
         dropBombAndFlee(gladiator);
         currState = STATES::MOVE;
-        puts("END bomb");
     }
 }
 

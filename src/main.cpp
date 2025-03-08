@@ -20,10 +20,12 @@ void setup(){
 
 void reset(){
     gladiator->log("Call of reset function"); // GFA 4.5.1
-    nearestPOI = { -1, -1, -1};
+    POI = { -1, -1, -1};
+    squarePOI = nullptr;
+    reachedPOI = false;
     while (!toGo.empty()) toGo.pop();
-    lastPos = { 0, 0, 0 };
     mazeSize = -1;
+    haveBeenOut = false;
 }
 
 void loop(){

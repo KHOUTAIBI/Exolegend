@@ -1,4 +1,5 @@
-#include "./headers/bomb.h"
+#include "headers/bomb.h"
+
 struct FleeStrat{
     int distanceFromCenter{}; // in normmax
     MazeSquare * first{};
@@ -72,8 +73,8 @@ int dropBombAndFlee(Gladiator * gladiator){
     if(escape) {
         gladiator->weapon->dropBombs(gladiator->weapon->getBombCount());
         while (!toGo.empty()) toGo.pop();
-        toGo.push(sqToCo(bestStrat.first));
-        toGo.push(sqToCo(bestStrat.second));
+        toGo.push(squareToCoord(bestStrat.first));
+        toGo.push(squareToCoord(bestStrat.second));
         return 0;
     }
     else {
