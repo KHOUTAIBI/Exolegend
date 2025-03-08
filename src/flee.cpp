@@ -1,6 +1,7 @@
 #include "./headers/flee.h"
 
-void flee(Gladiator * gladiator, STATES & currState){
+void flee(Gladiator * gladiator, STATES & currentState){
+
     MazeSquare * strat[2];
     MazeSquare * start = gladiator->maze->getNearestSquare();
 
@@ -62,5 +63,5 @@ void flee(Gladiator * gladiator, STATES & currState){
         go_to(gladiator, nextPosition, myPosition);
     }
     
-    currState = STATES::MOVE;
+    currentState = STATES::MOVE;
 }

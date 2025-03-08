@@ -1,9 +1,10 @@
 #ifndef BOMB_H
 #define BOMB_H
 
-#include "gladiator.h"
 #include "SomethingRobotics.h"
+#include "gladiator.h"
 
-void dropbomb(Gladiator * gladiator, STATES & currState);
+
+void dropbomb(Gladiator * gladiator, STATES& currentState);
 
 #endif

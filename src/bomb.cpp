@@ -1,11 +1,11 @@
-#include <bomb.h>
+#include "./headers/bomb.h"
 
-void dropbomb(Gladiator * gladiator, STATES & currState){
+void dropbomb(Gladiator * gladiator, STATES& currentState){
     if(gladiator->weapon->getBombCount() > 0){
         gladiator->weapon->dropBombs(1);
-        currState = STATES::FLEE;
+        currentState = STATES::FLEE;
     }
     else{
-        currState = STATES::MOVE;
+        currentState = STATES::MOVE;
     }
 }

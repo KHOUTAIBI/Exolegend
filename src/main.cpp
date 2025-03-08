@@ -1,10 +1,9 @@
 #include "gladiator.h"
-#include "./headers/Attack.h"
 #include "./headers/SomethingRobotics.h"
-#include "./headers/tools.h"
 
 Gladiator *gladiator; // init gladiator
 RobotData gadiatorData; // data of the robots
+STATES currState = STATES::MOVE;
 
 void reset();
 void setup(){
@@ -18,6 +17,7 @@ void reset(){
 }
 
 void loop(){
+    
     if (gladiator->game->isStarted()){
         uint8_t Listids[2] = {
             gladiator->game->getPlayingRobotsId().ids[0],
