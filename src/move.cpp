@@ -56,7 +56,9 @@ void BFS(Gladiator* gladiator, coord s) {
         const MazeSquare* square = gladiator->maze->getSquare(nS.first, nS.second);
 
         // We can update here : add a selection over the color of the ground
-        if (square->coin.value > 0) {
+        // Strategy to change after h. because we may want to have a bomb on an already colored tile
+        // If we have no bomb
+        if (square->coin.value > 0 && square->possession != gladiator->robot->getData().teamId) { 
             nodesToQueue(parent);
             break;
         }
@@ -155,7 +157,8 @@ bool isCloseEnough(Position gPos) {
     return distance(gPos, nearestPOI) < 0.1;
 }
 
-void move(Gladiator* gladiator) {
+StateMove move(Gladiator* gladiator) {
+    StateMove result = StateMove::STAY;
     Position gladiatorPos = gladiator->robot->getData().position;
     int outside = isOutsideMaze(gladiator);
     if (outside == 1) {
@@ -177,10 +180,6 @@ void move(Gladiator* gladiator) {
             while (!toGo.empty()) toGo.pop();
         }
 
-        // if (gladiator->weapon->getBombCount()) {
-        //     gladiator->weapon->dropBombs(1);
-        // }
-
         const MazeSquare* square = gladiator->maze->getNearestSquare();
         
         // Construct toGo
@@ -188,25 +187,24 @@ void move(Gladiator* gladiator) {
             coord co = sqToCo(square);
             // printf("Starting with : %x %x\n", co.first, co.second);
             BFS(gladiator, co);
+            if (gladiator->weapon->getBombCount()) result = StateMove::BOMB;
         }
         if (!toGo.empty() && isCloseEnough(gladiatorPos)) {
             coord co = toGo.front();
             // printf("CO : %x %x\n", co.first, co.second);
             nearestPOI = getSquarePosition(gladiator->maze->getSquare(co.first, co.second));
+            // TODO add detection of danger level
             // printf("NPOI : %lf %lf\n", nearestPOI.x, nearestPOI.y);
             toGo.pop();
             // puts("---");
         }
 
         // goTo(gladiator, nearestPOI, gladiatorPos);
-        aim(gladiator, { nearestPOI.x, nearestPOI.y });
+        aim(gladiator, { nearestPOI.x, nearestPOI.y }, 0.2f, 0.2f);
     }
 
     lastPos = gladiatorPos;
-}
-
-std::queue<coord> & getToGo(){
-    return toGo;
+    return result;
 }
 
 int isOutsideMaze(Gladiator *gladiator) {

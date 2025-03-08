@@ -109,8 +109,11 @@ class Vector2
   private:
     float _x, _y;
 };
+enum class StateMove { STAY, BOMB, FLEE };
 
 bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh = 0.2, float defaultSpeed = 0.2);
-void move(Gladiator* gladiator);
+StateMove move(Gladiator* gladiator);
 int isOutsideMaze(Gladiator* gladiator);
+coord sqToCo(const MazeSquare* square);
+
 #endif

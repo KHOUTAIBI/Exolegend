@@ -3,8 +3,9 @@
 
 #include <gladiator.h>
 #include "move.h"
-#include "tools.h"
 
-int flee(Gladiator* gladiator);
+enum DIR {N, S, E, W};
+
+void flee(Gladiator* gladiator);
 
 #endif

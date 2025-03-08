@@ -2,10 +2,9 @@
 #define SOMETHINGROBOTICS_H
 
 #include "bomb.h"
-#include "flee.h"
 
 // Defining the states
-enum STATES{
+enum class STATES{
     MOVE,
     ATTACK,
     FLEE,
@@ -15,21 +14,22 @@ enum STATES{
 STATES currState = STATES::MOVE;
 
 inline void command(Gladiator* gladiator){
-    if (gladiator->weapon->getBombCount() > 0){
-        currState = STATES::BOMB;
-    }
-    printf("%d\n", currState);
     if (currState == STATES::MOVE){
-        move(gladiator);
+        StateMove nextState = move(gladiator);
+        if (nextState == StateMove::BOMB) {
+            currState = STATES::BOMB;
+        }
     }
     else if (currState == STATES::ATTACK){
         
     }
     else if (currState == STATES::FLEE){
-        currState = (STATES) flee(gladiator);
     }
     else if (currState == STATES::BOMB) {
-        currState = (STATES) dropBombAndFlee(gladiator);
+        puts("BOMB");
+        dropBombAndFlee(gladiator);
+        currState = STATES::MOVE;
+        puts("END bomb");
     }
 }
 
