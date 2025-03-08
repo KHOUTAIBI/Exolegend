@@ -42,7 +42,7 @@ bool fleeStrat(Gladiator * gladiator){
         result = false;
     }
 
-    if(strat[0]->danger > 0 && strat[1]->danger > 0){
+    if(strat[0]->danger > 0 || strat[1]->danger > 0){
         result = false;
     }
 
