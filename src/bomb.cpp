@@ -14,10 +14,12 @@ struct FleeStrat{
     }
 };
 
-std::vector<FleeStrat> stratSet;
+// global best strat
+FleeStrat bestStrat;
 
 
-bool fleeStrat(Gladiator * gladiator, FleeStrat & bestStrat){
+bool fleeStrat(Gladiator * gladiator){
+    std::vector<FleeStrat> stratSet;
     MazeSquare * start = gladiator->maze->getNearestSquare();
     int distance;
 
@@ -67,12 +69,14 @@ bool canDropBomb(Gladiator * gladiator, MazeSquare ** strat){
 
 
 int dropBombAndFlee(Gladiator * gladiator){
-    FleeStrat bestStrat;
-    bool escape = fleeStrat(gladiator, bestStrat) && (gladiator->weapon->getBombCount() > 0) && (gladiator->maze->getNearestSquare()->possession != gladiator->robot->getData().teamId);
+    bool escape = fleeStrat(gladiator);
+    escape = escape && (gladiator->weapon->getBombCount() > 0) && (gladiator->maze->getNearestSquare()->possession != gladiator->robot->getData().teamId);
 
     if(escape) {
         gladiator->weapon->dropBombs(gladiator->weapon->getBombCount());
         while (!toGo.empty()) toGo.pop();
+        gladiator->log("the best first strat is (%i,%i)",bestStrat.first->i,bestStrat.first->j);
+        gladiator->log("the best second strat is  (%i,%i)",bestStrat.second->i,bestStrat.second->j);
         toGo.push(squareToCoord(bestStrat.first));
         toGo.push(squareToCoord(bestStrat.second));
         return 0;

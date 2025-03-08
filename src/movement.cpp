@@ -21,6 +21,14 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
 
     float targetAngle = posError.angle();
     float angleError = moduloPi(targetAngle - posRaw.a);
+    
+    bool reverse = false;
+    // Choosing to reverse.
+    if (abs(moduloPi(targetAngle - (posRaw.a + M_PI))) < abs(angleError)) {
+        reverse = true;
+        angleError = moduloPi(angleError - M_PI);
+    }
+
 
     bool targetReached = false;
     float leftCommand = 0.f;
@@ -29,6 +37,8 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
     if (d < POS_REACHED_THRESHOLD) {
         targetReached = true;
     }
+
+
     else if (abs(angleError) > angThresh) {   
         float factor = defaultRotSpeed;
         if ((targetAngle - posRaw.a) < 0)
@@ -41,6 +51,12 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
         float factor = defaultSpeed * std::exp(-k * (baseDistance - d));
         rightCommand = factor + angleError*0.1; //  => terme optionel, "pseudo correction angulaire";
         leftCommand = factor - angleError*0.1; //   => terme optionel, "pseudo correction angulaire";
+
+        if (reverse){
+            std::swap(leftCommand, rightCommand);
+            leftCommand *= -1;
+            rightCommand *= -1;
+        }
     }
 
     gladiator->control->setWheelSpeed(WheelAxis::LEFT, leftCommand);
