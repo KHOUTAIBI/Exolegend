@@ -3,6 +3,7 @@
 
 #include "gladiator.h"
 #include "move.h"
+#include <vector>
 
 int dropBombAndFlee(Gladiator * gladiator);
 

@@ -1,48 +1,63 @@
 #include "./headers/bomb.h"
+struct FleeStrat{
+    int distanceFromCenter{}; // in normmax
+    MazeSquare * first{};
+    MazeSquare * second{};
 
-MazeSquare * strat[2];
+    FleeStrat(){}
 
-bool fleeStrat(Gladiator * gladiator){
-    bool result = true;
+    FleeStrat(int distance, MazeSquare * first, MazeSquare * second){
+        this->distanceFromCenter = distance;
+        this->first = first;
+        this->second = second;
+    }
+};
+
+std::vector<FleeStrat> stratSet;
+
+
+bool fleeStrat(Gladiator * gladiator, FleeStrat & bestStrat){
     MazeSquare * start = gladiator->maze->getNearestSquare();
+    int distance;
 
-    //etablir la strat
-    if (start->northSquare != nullptr && start->northSquare->eastSquare != nullptr){
-        strat[0] = start->northSquare;
-        strat[1] = start->northSquare->eastSquare;
+    MazeSquare * plusTab[4] = {start->northSquare, start->westSquare, start->southSquare, start->eastSquare};
+
+    for(int i = 0; i < 4; i++){
+        if (plusTab[i] != nullptr && plusTab[i]->danger < 1){
+            if(i % 2 == 0){
+                if(plusTab[i]->westSquare != 0 && plusTab[i]->westSquare->danger < 1) {
+                    distance = std::max(abs(plusTab[i]->westSquare->i - 6), abs(plusTab[i]->westSquare->j - 6));
+                    stratSet.push_back(FleeStrat(distance ,plusTab[i], plusTab[i]->westSquare));
+                }
+                if(plusTab[i]->eastSquare != 0 && plusTab[i]->eastSquare->danger < 1) {
+                    distance = std::max(abs(plusTab[i]->eastSquare->i - 6), abs(plusTab[i]->eastSquare->j - 6));
+                    stratSet.push_back(FleeStrat(distance ,plusTab[i], plusTab[i]->eastSquare));
+                }
+            }
+            else if(i % 2 == 1){
+                if(plusTab[i]->northSquare != 0 && plusTab[i]->northSquare->danger < 1) {
+                    distance = std::max(abs(plusTab[i]->northSquare->i - 6), abs(plusTab[i]->northSquare->j - 6));
+                    stratSet.push_back(FleeStrat(distance ,plusTab[i], plusTab[i]->northSquare));
+                }
+                if(plusTab[i]->southSquare != 0 && plusTab[i]->southSquare->danger < 1) {
+                    distance = std::max(abs(plusTab[i]->southSquare->i - 6), abs(plusTab[i]->southSquare->j - 6));
+                    stratSet.push_back(FleeStrat(distance ,plusTab[i], plusTab[i]->southSquare));
+                }
+            }
+        }
     }
-    else if (start->northSquare != nullptr && start->northSquare->westSquare != nullptr){
-        strat[0] = start->northSquare;
-        strat[1] = start->northSquare->westSquare;
+
+    if(stratSet.empty()){
+        return false;
     }
-    else if (start->southSquare != nullptr && start->southSquare->eastSquare != nullptr){
-        strat[0] = start->southSquare;
-        strat[1] = start->southSquare->eastSquare;
+
+    bestStrat = * stratSet.begin();
+    for(auto S : stratSet){
+        if (S.distanceFromCenter < bestStrat.distanceFromCenter){
+            bestStrat = S;
+        }
     }
-    else if (start->southSquare != nullptr && start->southSquare->westSquare != nullptr){
-        strat[0] = start->southSquare;
-        strat[1] = start->southSquare->westSquare;
-    }
-    else if (start->eastSquare != nullptr && start->eastSquare->northSquare != nullptr){
-        strat[0] = start->eastSquare;
-        strat[1] = start->eastSquare->northSquare;
-    }
-    else if (start->eastSquare != nullptr && start->eastSquare->southSquare != nullptr){
-        strat[0] = start->eastSquare;
-        strat[1] = start->eastSquare->southSquare;
-    }
-    else if (start->westSquare != nullptr && start->westSquare->northSquare != nullptr){
-        strat[0] = start->westSquare;
-        strat[1] = start->westSquare->northSquare;
-    }
-    else if (start->westSquare != nullptr && start->westSquare->southSquare != nullptr){
-        strat[0] = start->westSquare;
-        strat[1] = start->westSquare->southSquare;
-    }
-    else{
-        result = false;
-    }
-    return result;
+    return true;
 }
 
 bool canDropBomb(Gladiator * gladiator, MazeSquare ** strat){
@@ -51,14 +66,14 @@ bool canDropBomb(Gladiator * gladiator, MazeSquare ** strat){
 
 
 int dropBombAndFlee(Gladiator * gladiator){
-    bool escape = fleeStrat(gladiator);
+    FleeStrat bestStrat;
+    bool escape = fleeStrat(gladiator, bestStrat) && gladiator->weapon->getBombCount() && (gladiator->maze->getNearestSquare()->possession != gladiator->robot->getData().teamId);
 
-    if(escape && gladiator->weapon->getBombCount() && 
-        (gladiator->maze->getNearestSquare()->possession != gladiator->robot->getData().teamId)) {
-        gladiator->weapon->dropBombs(1);
+    if(escape) {
+        gladiator->weapon->dropBombs(gladiator->weapon->getBombCount());
         while (!toGo.empty()) toGo.pop();
-        toGo.push(sqToCo(strat[0]));
-        toGo.push(sqToCo(strat[1]));
+        toGo.push(sqToCo(bestStrat.first));
+        toGo.push(sqToCo(bestStrat.second));
         return 0;
     }
     else {
