@@ -41,6 +41,11 @@ bool fleeStrat(Gladiator * gladiator){
     else{
         result = false;
     }
+
+    if(strat[0]->danger > 0 && strat[1]->danger > 0){
+        result = false;
+    }
+
     while (!toGo.empty()) toGo.pop();
     toGo.push(sqToCo(strat[0]));
     toGo.push(sqToCo(strat[1]));
