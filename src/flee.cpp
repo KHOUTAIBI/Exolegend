@@ -1,4 +1,4 @@
-#include "flee.h"
+#include "./headers/flee.h"
 
 void flee(Gladiator * gladiator, STATES & currState){
     MazeSquare * strat[2];

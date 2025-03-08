@@ -7,34 +7,33 @@ Gladiator *gladiator; // init gladiator
 RobotData gadiatorData; // data of the robots
 
 void reset();
-void setup()
-{
-    // instanciation de l'objet gladiator
-    gladiator = new Gladiator();
-    // enregistrement de la fonction de reset qui s'éxecute à chaque fois avant qu'une partie commence
+void setup(){
+    gladiator = new Gladiator(); //gladiator 1, friendly
     gladiator->game->onReset(&reset); // GFA 4.4.1
     gladiator->weapon->initWeapon(WeaponPin::M1, WeaponMode::SERVO); //Sertting the weapong mode of the robot to servo
 }
 
-void reset()
-{
-    // fonction de reset:
-    // initialisation de toutes vos variables avant le début d'un match
+void reset(){
     gladiator->log("Call of reset function"); // GFA 4.5.1
 }
 
 void loop(){
     if (gladiator->game->isStarted()){
+        uint8_t Listids[2] = {
+            gladiator->game->getPlayingRobotsId().ids[0],
+            gladiator->game->getPlayingRobotsId().ids[1],
+        };
+
         gladiator->log("Game has begun"); // GFA 4.5.1
-        gladiator->control->setWheelSpeed(WheelAxis::LEFT, 0.2); 
-        gladiator->control->setWheelSpeed(WheelAxis::RIGHT, 0.2);
-        float* distances = distanceToAllAdvs(gladiator);
-        std::cout <<distances[0];
-        attack(gladiator, 20);
+        std::vector<float> distances = distanceToAllAdvs(gladiator);
+        gladiator->log("%f",distances[0]);
+        gladiator->log("%f",distances[1]);
+        if (gladiator->robot->getData().id != Listids[0]) attack(gladiator, Listids[0]);
+        else attack(gladiator, Listids[1]);
     }
-    else
-    {
-        gladiator->log("Hello world - Game not Startd yet"); // GFA 4.5.1
+    else{
+        gladiator->log("Game has not Startd yet"); // GFA 4.5.1
     }
+
     delay(300);
 }

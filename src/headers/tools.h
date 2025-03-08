@@ -33,14 +33,19 @@ float distanceTwoRobots(Position gladiatorPos, Position gladiatorAdvPos){
 }
 
 // Function which returns the distances to all robots
-float* distanceToAllAdvs(Gladiator* gladiator){
+std::vector<float> distanceToAllAdvs(Gladiator* gladiator){
 
-    float distancesToAdvs[2];
-    uint8_t* Listids[4];
+    std::vector<float> distancesToAdvs;
+    uint8_t Listids[4] = {
+        gladiator->game->getPlayingRobotsId().ids[0],
+        gladiator->game->getPlayingRobotsId().ids[1],
+        gladiator->game->getPlayingRobotsId().ids[2],
+        gladiator->game->getPlayingRobotsId().ids[3]
+    };
 
     for (int i = 0; i < 4; i++){
         if (Listids[i] != ID1 && Listids[i] != ID2){
-            distancesToAdvs[i] = distanceTwoRobots(gladiator->robot->getData().position, gladiator->game->getOtherRobotData(Listids[i]).position);
+            distancesToAdvs.push_back(distanceTwoRobots(gladiator->robot->getData().position, gladiator->game->getOtherRobotData(Listids[i]).position));
         }
     }
 
@@ -49,7 +54,7 @@ float* distanceToAllAdvs(Gladiator* gladiator){
         distancesToAdvs[0] = distancesToAdvs[1];
     }
 
-    return &distancesToAdvs[0];
+    return distancesToAdvs;
 }
 
 
