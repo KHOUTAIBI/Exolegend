@@ -1,10 +1,10 @@
 #ifndef FLEE_H
 #define FLEE_H
 
-#include "./SomethingRobotics.h"
+#include <gladiator.h>
 
 enum DIR {N, S, E, W};
 
-void flee(Gladiator* gladiator, STATES& currentState);
+void flee(Gladiator* gladiator);
 
 #endif

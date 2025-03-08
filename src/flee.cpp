@@ -1,6 +1,6 @@
 #include "./headers/flee.h"
 
-void flee(Gladiator * gladiator, STATES & currentState){
+void flee(Gladiator * gladiator){
 
     MazeSquare * strat[2];
     MazeSquare * start = gladiator->maze->getNearestSquare();
@@ -58,10 +58,8 @@ void flee(Gladiator * gladiator, STATES & currentState){
 
     //executer la stat
     for (int i = 0; i < 2; i++){
-        Position myPosition = gladiator->robot->getData().position;
-        Position nextPosition{(strat[0]->i + 1/2)*gladiator->maze->getSquareSize(), (strat[0]->j + 1/2)*gladiator->maze->getSquareSize(), 0};
-        go_to(gladiator, nextPosition, myPosition);
+        // Position myPosition = gladiator->robot->getData().position;
+        // Position nextPosition{(strat[0]->i + 1/2)*gladiator->maze->getSquareSize(), (strat[0]->j + 1/2)*gladiator->maze->getSquareSize(), 0};
+        // go_to(gladiator, nextPosition, myPosition);
     }
-    
-    currentState = STATES::MOVE;
 }

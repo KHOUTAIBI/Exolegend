@@ -3,7 +3,6 @@
 
 Gladiator *gladiator; // init gladiator
 RobotData gadiatorData; // data of the robots
-STATES currState = STATES::MOVE;
 
 void reset();
 void setup(){
