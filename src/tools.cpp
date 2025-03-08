@@ -3,7 +3,7 @@
 float kw = 1.2;
 float kv = 1.f;
 float wlimit = 3.f;
-float vlimit = 0.6;
+float vlimit = 1.0;
 float erreurPos = 0.07;
 
 double reductionAngle(double x){

@@ -2,8 +2,11 @@
 
 Position nearestPOI = { -1, -1, -1};
 std::queue<coord> toGo;
+const MazeSquare* MazeSquarePoI;
 Position lastPos = { 0, 0, 0 };
 float mazeSize = -1;
+bool isStuck = false;
+bool isOutside = false;
 
 double distance(Position p1, Position p2) {
     double x = p1.x - p2.x;
@@ -19,6 +22,7 @@ coord sqToCo(const MazeSquare* square) {
     return std::make_pair(square->i, square->j);
 }
 
+// pushing stuff in goto, descending order until we get to null Pointer
 void nodesToQueue(Node* tail) {
     if (tail->previous == nullptr) {
         toGo.push(tail->co);
@@ -27,14 +31,6 @@ void nodesToQueue(Node* tail) {
         nodesToQueue(tail->previous);
         toGo.push(tail->co);
     }
-}
-
-// Get NearestPOI travelPoint from Square
-Position POIFromSquare(Position gPos, MazeSquare* square) {
-    Position pos = square->coin.p;
-    pos.x = 2*pos.x - (2*gPos.x - lastPos.x);
-    pos.y = 2*pos.y - (2*gPos.y - lastPos.y);
-    return pos;
 }
 
 // Search for the bomb  
@@ -62,8 +58,11 @@ void BFS(Gladiator* gladiator, coord s) {
             nodesToQueue(parent);
             break;
         }
+        // else if (square->possession != gladiator->robot->getData().teamId) {
+        //     bestCase = parent;
+        // }
 
-        if (square->northSquare != nullptr) {
+        if (square->northSquare != nullptr ) {
             coord north = sqToCo(square->northSquare);
             if (visited.find(north) == visited.end()) {
                 Node* node = new Node;
@@ -85,7 +84,7 @@ void BFS(Gladiator* gladiator, coord s) {
                 visited.insert(south);
             }
         } 
-        if (square->westSquare != nullptr) {
+        if (square->westSquare != nullptr ) {
             coord west = sqToCo(square->westSquare);
             if (visited.find(west) == visited.end()) {
                 Node* node = new Node;
@@ -107,14 +106,18 @@ void BFS(Gladiator* gladiator, coord s) {
                 visited.insert(east);
             }
         }
+        // depth--;
+        // if (depth == 0) break;
     }
-
+    // if (bestCase != nullptr) {
+    //     nodesToQueue(bestCase);
+    // }
     for (const auto& node : nodes) {
         delete node.second;
     }
 }
 
-bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float defaultSpeed) {
+bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float defaultSpeed, float defaultRotSpeed) {
     float POS_REACHED_THRESHOLD = 0.1;
 
     auto posRaw = gladiator->robot->getData().position;
@@ -133,7 +136,7 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
         targetReached = true;
     }
     else if (abs(angleError) > angThresh && abs(angleError) < M_PI - angThresh) {   
-        float factor = 0.05;
+        float factor = defaultRotSpeed;
         if (angleError < 0)
             factor = -factor;
         rightCommand = factor;
@@ -160,14 +163,20 @@ bool isCloseEnough(Position gPos) {
 StateMove move(Gladiator* gladiator) {
     StateMove result = StateMove::STAY;
     Position gladiatorPos = gladiator->robot->getData().position;
+    // If outside the maze, run back !!!!
     int outside = isOutsideMaze(gladiator);
-    if (outside == 1) {
-        aim(gladiator, { 1.5, gladiatorPos.y }, (M_PI / 2.0), 0.5);
+    if (outside) {
+        aim(gladiator, { 1.5, 1.5 }, (M_PI / 4.0), 0.5, 0.2);
+        // go_to(gladiator, { 1.5, 1.5, 0 }, gladiatorPos);
         while (!toGo.empty()) toGo.pop();
+        isOutside = true;
     }
-    else if (outside == 2) {
-        aim(gladiator, { gladiatorPos.x, 1.5 }, (M_PI / 2.0), 0.5);
-        while (!toGo.empty()) toGo.pop();
+    else if (isOutside) {
+        gladiator->log("Is on the border");
+        go_to(gladiator, { 1.5, 1.5, 0 }, gladiatorPos);
+        if (gladiator->robot->getData().speedLimit != 0.1) {
+            isOutside = false;
+        }
     }
     else {
         // nearestPOI = findNearestPOI(gladiator);
@@ -182,27 +191,38 @@ StateMove move(Gladiator* gladiator) {
 
         const MazeSquare* square = gladiator->maze->getNearestSquare();
         
-        // Construct toGo
-        if (toGo.empty() && isCloseEnough(gladiatorPos)) {
+        // Construct toGo and check if drop bomb possible
+        if ( (toGo.empty() && isCloseEnough(gladiatorPos)) || isStuck) {
             coord co = sqToCo(square);
             // printf("Starting with : %x %x\n", co.first, co.second);
             BFS(gladiator, co);
-            if (gladiator->weapon->getBombCount()) result = StateMove::BOMB;
+            if (toGo.empty()) {
+                nearestPOI = { 1.5, 1.5, 0 };
+                isStuck = true;
+            }
+            else {
+                isStuck = false;
+            }
         }
+        
+        if (gladiator->weapon->getBombCount() && square->danger == 0 && square->possession != gladiator->robot->getData().teamId) result = StateMove::BOMB;
+
         if (!toGo.empty() && isCloseEnough(gladiatorPos)) {
             coord co = toGo.front();
             // printf("CO : %x %x\n", co.first, co.second);
-            nearestPOI = getSquarePosition(gladiator->maze->getSquare(co.first, co.second));
+            MazeSquarePoI = gladiator->maze->getSquare(co.first, co.second);
+            nearestPOI = getSquarePosition(MazeSquarePoI);
             // TODO add detection of danger level
             // printf("NPOI : %lf %lf\n", nearestPOI.x, nearestPOI.y);
             toGo.pop();
             // puts("---");
         }
+        
 
         // goTo(gladiator, nearestPOI, gladiatorPos);
-        aim(gladiator, { nearestPOI.x, nearestPOI.y }, 0.2f, 0.2f);
+        if (MazeSquarePoI->danger == 0 || square->danger >= MazeSquarePoI->danger) aim(gladiator, { nearestPOI.x, nearestPOI.y }, 0.2f, 0.2f);
+    
     }
-
     lastPos = gladiatorPos;
     return result;
 }
