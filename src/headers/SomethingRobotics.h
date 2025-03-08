@@ -18,7 +18,7 @@ inline void command(Gladiator* gladiator){
     if (gladiator->weapon->getBombCount() > 0){
         currState = STATES::BOMB;
     }
-
+    printf("%d\n", currState);
     if (currState == STATES::MOVE){
         move(gladiator);
     }
@@ -29,7 +29,7 @@ inline void command(Gladiator* gladiator){
         currState = (STATES) flee(gladiator);
     }
     else if (currState == STATES::BOMB) {
-        currState = (STATES) dropbomb(gladiator);
+        currState = (STATES) dropBombAndFlee(gladiator);
     }
 }
 

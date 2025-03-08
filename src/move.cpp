@@ -166,3 +166,7 @@ void move(Gladiator* gladiator) {
 
     lastPos = gladiatorPos;
 }
+
+std::queue<coord> & getToGo(){
+    return toGo;
+}

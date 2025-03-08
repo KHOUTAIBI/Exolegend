@@ -3,6 +3,7 @@
 
 #include <gladiator.h>
 #include "move.h"
+#include "tools.h"
 
 int flee(Gladiator* gladiator);
 
