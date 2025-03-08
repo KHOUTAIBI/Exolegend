@@ -116,4 +116,6 @@ StateMove move(Gladiator* gladiator);
 int isOutsideMaze(Gladiator* gladiator);
 coord sqToCo(const MazeSquare* square);
 
+void goRight(Gladiator* gladiator);
+
 #endif

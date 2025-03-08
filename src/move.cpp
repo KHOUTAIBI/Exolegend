@@ -4,6 +4,7 @@ Position nearestPOI = { -1, -1, -1};
 std::queue<coord> toGo;
 Position lastPos = { 0, 0, 0 };
 float mazeSize = -1;
+int orientation = 0; // 0 - NORTH, 1 - EAST, 2 - SOUTH, 3 - WEST
 
 double distance(Position p1, Position p2) {
     double x = p1.x - p2.x;
@@ -19,6 +20,54 @@ coord sqToCo(const MazeSquare* square) {
     return std::make_pair(square->i, square->j);
 }
 
+void goRight(Gladiator *gladiator) {
+    const MazeSquare* square = gladiator->maze->getNearestSquare();
+    bool nextIsSet = false;
+    while (!nextIsSet) {
+        switch (orientation) {
+            case 0: // NORTH
+            const MazeSquare* next = square->northSquare;
+            if (next != nullptr && next->danger < 1) {
+                nearestPOI = getSquarePosition(next);
+            }
+            else {
+                orientation = 1;
+            }
+            break;
+
+            case 1: // EAST
+            const MazeSquare* next = square->eastSquare;
+            if (next != nullptr && next->danger < 1) {
+                nearestPOI = getSquarePosition(next);
+            }
+            else {
+                orientation = 2;
+            }
+            break;
+
+            case 2: // SOUTH
+            const MazeSquare* next = square->southSquare;
+            if (next != nullptr && next->danger < 1) {
+                nearestPOI = getSquarePosition(next);
+            }
+            else {
+                orientation = 3;
+            }
+            break;
+
+            case 3: // WEST
+            const MazeSquare* next = square->westSquare;
+            if (next != nullptr && next->danger < 1) {
+                nearestPOI = getSquarePosition(next);
+            }
+            else {
+                orientation = 0;
+            }
+            break;
+        }
+    }    
+}
+
 void nodesToQueue(Node* tail) {
     if (tail->previous == nullptr) {
         toGo.push(tail->co);
@@ -28,6 +77,8 @@ void nodesToQueue(Node* tail) {
         toGo.push(tail->co);
     }
 }
+
+
 
 // Get NearestPOI travelPoint from Square
 Position POIFromSquare(Position gPos, MazeSquare* square) {
