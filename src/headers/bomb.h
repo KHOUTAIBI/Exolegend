@@ -3,7 +3,6 @@
 
 #include "gladiator.h"
 
-
-// void dropbomb(Gladiator * gladiator);
+int dropbomb(Gladiator * gladiator);
 
 #endif
