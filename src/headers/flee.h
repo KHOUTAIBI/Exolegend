@@ -2,7 +2,7 @@
 #define FLEE_H
 
 #include <gladiator.h>
-#include "move.h"
+#include "movement.h"
 
 enum DIR {N, S, E, W};
 

@@ -57,8 +57,8 @@ void flee(Gladiator * gladiator){
     }
     
     while (!toGo.empty()) toGo.pop();
-    toGo.push(sqToCo(strat[0]));
-    toGo.push(sqToCo(strat[1]));
+    toGo.push(squareToCoord(strat[0]));
+    toGo.push(squareToCoord(strat[1]));
 
     //executer la stat
     // for (int i = 0; i < 2; i++){
