@@ -1,5 +1,5 @@
-    #include "gladiator.h"
-#include "./headers/SomethingRobotics.h"
+#include "gladiator.h"
+#include "headers/SomethingRobotics.h"
 
 Gladiator *gladiator; // init gladiator
 RobotData gadiatorData; // data of the robots
@@ -20,17 +20,20 @@ void setup(){
 
 void reset(){
     gladiator->log("Call of reset function"); // GFA 4.5.1
+    nearestPOI = { -1, -1, -1};
+    while (!toGo.empty()) toGo.pop();
+    lastPos = { 0, 0, 0 };
+    mazeSize = -1;
 }
 
 void loop(){
     
     if (gladiator->game->isStarted()){
-        
-        // gladiator->log("Game has begun"); // GFA 4.5.1
+        gladiator->log("Game has begun"); // GFA 4.5.1
         command(gladiator);
     }
     else{
-        // gladiator->log("Game has not Startd yet"); // GFA 4.5.1
+        gladiator->log("Game has not Startd yet"); // GFA 4.5.1
     }
 
     delay(300);
