@@ -29,6 +29,7 @@ extern const MazeSquare* squarePOI;
 extern std::queue<coord> toGo;
 extern float mazeSize;
 extern bool haveBeenOut;
+extern uint8_t ListIds[2];
 extern MODE mode;
 
 bool aim(Gladiator *gladiator, 

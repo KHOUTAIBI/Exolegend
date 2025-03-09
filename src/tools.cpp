@@ -62,7 +62,7 @@ float distance(Position gladiatorPos, Position gladiatorAdvPos){
 std::pair<float,byte> distanceToAllAdvs(Gladiator* gladiator){
 
     float distancesToAdvs[2];
-    uint64_t ListIdsAdv[2];
+    uint8_t ListIdsAdv[2];
 
     uint8_t Listids[4] = {
         gladiator->game->getPlayingRobotsId().ids[0],

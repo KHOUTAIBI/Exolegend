@@ -3,6 +3,7 @@
 
 Gladiator *gladiator; // init gladiator
 RobotData gadiatorData; // data of the robots
+uint8_t ListIds[2];
 
 void reset();
 void setup(){
