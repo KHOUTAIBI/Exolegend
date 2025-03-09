@@ -50,7 +50,7 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
         float factor = defaultSpeed;
 
         // Smoother transition function for speed scaling
-        float k = 2;
+        float k = 1;
         factor *= std::exp(-k * (baseDistance - d));  // Soft deceleration
 
         rightCommand = factor; // + angleError*0.1 => terme optionel, "pseudo correction angulaire";
@@ -69,16 +69,14 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
     return targetReached;
 }
 
-std::pair<int, coord> frontToGo() {
+coord frontToGo() {
     coord p1 = toGo.front();
-    int nbSquare = 1;
     toGo.pop();
     if (!toGo.empty()) {
         coord next = toGo.front();
         if (next.first == p1.first) {
             while (next.first == p1.first) {
                 p1 = next;
-                nbSquare++;
                 toGo.pop();
                 if (toGo.empty()) break;
                 next = toGo.front();
@@ -87,14 +85,13 @@ std::pair<int, coord> frontToGo() {
         else if (next.second == p1.second) {
             while (next.second == p1.second) {
                 p1 = next;
-                nbSquare++;
                 toGo.pop();
                 if (toGo.empty()) break;
                 next = toGo.front();
             }
         }
     }
-    return std::make_pair(nbSquare, p1);
+    return p1;
 }
 
 float speed = 0.0f;
@@ -135,7 +132,7 @@ StateMove control(Gladiator* gladiator) {
         // Adapt the speed to the mode
         switch (mode) {
             case MODE::EXPLORE:
-            speed = 0.3f;
+            speed = 0.4f;
             break;
             case MODE::FLEE:
             speed = 0.5f;
@@ -152,6 +149,9 @@ StateMove control(Gladiator* gladiator) {
             
             if (gladiator->weapon->getBombCount() == 0) {
                 BFS(gladiator, co, WANTED::FREE_BOMB, false); // Search for the closest FREE_BOMB
+                if (toGo.empty()) {
+                    BFS(gladiator, co, WANTED::BOMB, false);
+                }
             }
             else if (square->possession == gladiator->robot->getData().teamId) {
                 BFS(gladiator, co, WANTED::FREE_SQUARE, false); // Search for the closest FREE_SQUARE
@@ -160,11 +160,13 @@ StateMove control(Gladiator* gladiator) {
                 result = StateMove::BOMB;
                 return result;
             }
+            // TODO tourner en rond à la fin
             
             // Handle the case when we are in a dead end
             if (toGo.empty()) {
-                // TODO
                 // gladiator->log("STILL EMPTY - DEAD END");
+                toGo.push(std::make_pair(6, 6));
+
             }
         }
 
@@ -174,8 +176,7 @@ StateMove control(Gladiator* gladiator) {
         if (!toGo.empty() && reachedPOI) {
             // gladiator->log("POI reached");
             // New POI
-            std::pair<int, coord> blocks = frontToGo();
-            coord co = blocks.second;
+            coord co = frontToGo();
             // gladiator->log("Target : %d %d\n", co.first, co.second);
             squarePOI = gladiator->maze->getSquare(co.first, co.second);
             POI = getSquarePosition(squarePOI);
@@ -188,10 +189,6 @@ StateMove control(Gladiator* gladiator) {
                 speed = 1.0f;
                 mode = MODE::FAST;
             }
-            
-            if (blocks.first == 1) speed = 0.35f;
-            else if (blocks.first == 2) speed = 0.45f;
-            else if (blocks.first > 2) speed = 0.65f;
             // Compute the baseDistance
             baseDistance = distance(gPos, POI);
             reachedPOI = false;
@@ -201,7 +198,7 @@ StateMove control(Gladiator* gladiator) {
         if (squarePOI->danger == 0 || // We are in danger
             square->danger >= squarePOI->danger // The current square is worst than the POI
         ) {
-            reachedPOI = aim(gladiator, { POI.x, POI.y }, 0.2f, speed, 0.1f);
+            reachedPOI = aim(gladiator, { POI.x, POI.y }, 0.15f, speed, 0.1f);
         }
         else {
             while (!toGo.empty()) toGo.pop();
