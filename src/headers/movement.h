@@ -44,5 +44,5 @@ coord squareToCoord(const MazeSquare* square);
 void nodesToQueue(Node* tail, std::queue<coord>& qu); // Travel along this arc and append, from bottom to top, the element to qu
 
 // Return the first and closest (according to depth) element of the desired type
-void BFS(Gladiator* gladiator, coord start, WANTED type = WANTED::FREE_BOMB);
+void BFS(Gladiator* gladiator, coord start, WANTED type = WANTED::FREE_BOMB, bool controlDanger=false);
 #endif

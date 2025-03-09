@@ -27,9 +27,9 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
     // Choosing to reverse.
     if (abs(moduloPi(targetAngle - (posRaw.a + M_PI))) < abs(angleError)) {
         reverse = true;
+        gladiator->log("REVERSE INCOMING");
         angleError = moduloPi(angleError - M_PI);
     }
-
 
     bool targetReached = false;
     float leftCommand = 0.f;
@@ -39,7 +39,6 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
         targetReached = true;
     }
 
-
     else if (abs(angleError) > angThresh) {   
         float factor = defaultRotSpeed;
         if ((targetAngle - posRaw.a) < 0)
@@ -48,10 +47,14 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
         leftCommand = -factor;
     }
     else {
-        float k = 0.5;
-        float factor = defaultSpeed * std::exp(-k * (baseDistance - d));
-        rightCommand = factor + angleError*0.1; //  => terme optionel, "pseudo correction angulaire";
-        leftCommand = factor - angleError*0.1; //   => terme optionel, "pseudo correction angulaire";
+        float factor = defaultSpeed;
+
+        // Smoother transition function for speed scaling
+        float k = 2;
+        factor *= std::exp(-k * (baseDistance - d));  // Soft deceleration
+
+        rightCommand = factor; // + angleError*0.1 => terme optionel, "pseudo correction angulaire";
+        leftCommand = factor; // - angleError*0.1  => terme optionel, "pseudo correction angulaire";
 
         if (reverse){
             std::swap(leftCommand, rightCommand);
@@ -66,6 +69,34 @@ bool aim(Gladiator *gladiator, const Vector2 &target, float angThresh, float def
     return targetReached;
 }
 
+std::pair<int, coord> frontToGo() {
+    coord p1 = toGo.front();
+    int nbSquare = 1;
+    toGo.pop();
+    if (!toGo.empty()) {
+        coord next = toGo.front();
+        if (next.first == p1.first) {
+            while (next.first == p1.first) {
+                p1 = next;
+                nbSquare++;
+                toGo.pop();
+                if (toGo.empty()) break;
+                next = toGo.front();
+            }
+        }
+        else if (next.second == p1.second) {
+            while (next.second == p1.second) {
+                p1 = next;
+                nbSquare++;
+                toGo.pop();
+                if (toGo.empty()) break;
+                next = toGo.front();
+            }
+        }
+    }
+    return std::make_pair(nbSquare, p1);
+}
+
 float speed = 0.0f;
 
 StateMove control(Gladiator* gladiator) {
@@ -75,7 +106,7 @@ StateMove control(Gladiator* gladiator) {
     if (isOutsideMaze(gladiator, gPos)) {
         // Handle the case when the robot is outside the maze
         // gladiator->log("I'm outside, HEEELP !");
-        aim(gladiator, { 1.5, 1.5 }, 0.2, 1.0, 0.5);
+        aim(gladiator, { 1.5, 1.5 }, 0.2, 1.0, 0.2);
         while (!toGo.empty()) toGo.pop();
         toGo.push(std::make_pair(6, 6));
         mode = MODE::FAST;
@@ -120,10 +151,10 @@ StateMove control(Gladiator* gladiator) {
             coord co = squareToCoord(square);
             
             if (gladiator->weapon->getBombCount() == 0) {
-                BFS(gladiator, co, WANTED::FREE_BOMB); // Search for the closest FREE_BOMB
+                BFS(gladiator, co, WANTED::FREE_BOMB, false); // Search for the closest FREE_BOMB
             }
             else if (square->possession == gladiator->robot->getData().teamId) {
-                BFS(gladiator, co, WANTED::FREE_SQUARE); // Search for the closest FREE_SQUARE
+                BFS(gladiator, co, WANTED::FREE_SQUARE, false); // Search for the closest FREE_SQUARE
             }
             else {
                 result = StateMove::BOMB;
@@ -143,8 +174,8 @@ StateMove control(Gladiator* gladiator) {
         if (!toGo.empty() && reachedPOI) {
             // gladiator->log("POI reached");
             // New POI
-            coord co = toGo.front();
-            toGo.pop(); // Pop the element
+            std::pair<int, coord> blocks = frontToGo();
+            coord co = blocks.second;
             // gladiator->log("Target : %d %d\n", co.first, co.second);
             squarePOI = gladiator->maze->getSquare(co.first, co.second);
             POI = getSquarePosition(squarePOI);
@@ -157,6 +188,10 @@ StateMove control(Gladiator* gladiator) {
                 speed = 1.0f;
                 mode = MODE::FAST;
             }
+            
+            if (blocks.first == 1) speed = 0.35f;
+            else if (blocks.first == 2) speed = 0.45f;
+            else if (blocks.first > 2) speed = 0.65f;
             // Compute the baseDistance
             baseDistance = distance(gPos, POI);
             reachedPOI = false;
@@ -166,7 +201,15 @@ StateMove control(Gladiator* gladiator) {
         if (squarePOI->danger == 0 || // We are in danger
             square->danger >= squarePOI->danger // The current square is worst than the POI
         ) {
-            reachedPOI = aim(gladiator, { POI.x, POI.y }, 0.15f, speed, 0.1f);
+            reachedPOI = aim(gladiator, { POI.x, POI.y }, 0.2f, speed, 0.1f);
+        }
+        else {
+            while (!toGo.empty()) toGo.pop();
+            const MazeSquare* currentSquare = gladiator->maze->getNearestSquare();
+            if (currentSquare->danger > 0) {
+                coord co = squareToCoord(currentSquare);
+                BFS(gladiator, co, WANTED::DANGER_FREE, true);
+            }
         }
     }
 
@@ -189,10 +232,10 @@ void nodesToQueue(Node *tail, std::queue<coord> &qu) {
 }
 
 // Function to summarize the addition of new point in BFS
-void registerSquare(const MazeSquare* square, const int& depth, std::queue<std::pair<int, coord>>& f, std::set<coord>& visited, std::map<coord, Node*>& nodes, Node* parent) {
+void registerSquare(const MazeSquare* square, const int& depth, std::queue<std::pair<int, coord>>& f, std::set<coord>& visited, std::map<coord, Node*>& nodes, Node* parent, bool controlDanger) {
     if (square != nullptr ) {
         coord co = squareToCoord(square);
-        if (visited.find(co) == visited.end()) {
+        if (visited.find(co) == visited.end() && (controlDanger || square->danger < 1)) {
             Node* node = new Node;
             node->co = co;
             node->idx = parent->idx + 1;
@@ -204,7 +247,7 @@ void registerSquare(const MazeSquare* square, const int& depth, std::queue<std::
     }
 }
 
-void BFS(Gladiator *gladiator, coord start, WANTED type) {
+void BFS(Gladiator *gladiator, coord start, WANTED type, bool controlDanger) {
     std::queue<std::pair<int, coord>> f; // The list of nodes to process (here the first int is the depth of the node)
     f.push(std::make_pair(0, start));
 
@@ -265,10 +308,10 @@ void BFS(Gladiator *gladiator, coord start, WANTED type) {
             } 
         }
         
-        registerSquare(square->northSquare, depth, f, visited, nodes, parent);
-        registerSquare(square->eastSquare, depth, f, visited, nodes, parent);
-        registerSquare(square->southSquare, depth, f, visited, nodes, parent);
-        registerSquare(square->westSquare, depth, f, visited, nodes, parent);
+        registerSquare(square->northSquare, depth, f, visited, nodes, parent, controlDanger);
+        registerSquare(square->eastSquare, depth, f, visited, nodes, parent, controlDanger);
+        registerSquare(square->southSquare, depth, f, visited, nodes, parent, controlDanger);
+        registerSquare(square->westSquare, depth, f, visited, nodes, parent, controlDanger);
     }
 
     // We get the path of the best canditates and copy it in toGo
