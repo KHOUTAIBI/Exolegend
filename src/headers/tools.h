@@ -11,7 +11,7 @@ double reductionAngle(double x);
 void go_to(Gladiator * gladiator, Position cons, Position pos);
 float normRobot(float x, float y);
 float distance(Position gladiatorPos, Position gladiatorAdvPos);
-std::vector<float> distanceToAllAdvs(Gladiator* gladiator);
+std::pair<float,byte> distanceToAllAdvs(Gladiator* gladiator);
 
 // Function to know if a position is outside the current maze
 bool isOutsideMaze(Gladiator* gladiator, const Position& pos);

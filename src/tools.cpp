@@ -59,9 +59,11 @@ float distance(Position gladiatorPos, Position gladiatorAdvPos){
 }
 
 // Function which returns the distances to all robots
-std::vector<float> distanceToAllAdvs(Gladiator* gladiator){
+std::pair<float,byte> distanceToAllAdvs(Gladiator* gladiator){
 
-    std::vector<float> distancesToAdvs;
+    float distancesToAdvs[2];
+    uint64_t ListIdsAdv[2];
+
     uint8_t Listids[4] = {
         gladiator->game->getPlayingRobotsId().ids[0],
         gladiator->game->getPlayingRobotsId().ids[1],
@@ -71,16 +73,18 @@ std::vector<float> distanceToAllAdvs(Gladiator* gladiator){
 
     for (int i = 0; i < 4; i++){
         if (Listids[i] != ID1 && Listids[i] != ID2){
-            distancesToAdvs.push_back(distance(gladiator->robot->getData().position, gladiator->game->getOtherRobotData(Listids[i]).position));
+            distancesToAdvs[i] = (distance(gladiator->robot->getData().position, gladiator->game->getOtherRobotData(Listids[i]).position));
+            ListIdsAdv[i] = gladiator->game->getOtherRobotData(Listids[i]).id;
         }
     }
 
     // sorting an easily sortable array
-    if (distancesToAdvs[1] <= distancesToAdvs[0]){
+    if (distancesToAdvs[1] < distancesToAdvs[0]){
         distancesToAdvs[0] = distancesToAdvs[1];
+        Listids[0] = Listids[1];
     }
 
-    return distancesToAdvs;
+    return std::make_pair(distancesToAdvs[0],Listids[0]);
 }
 
 Position getSquarePosition(const MazeSquare* square) {
