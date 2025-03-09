@@ -3,20 +3,32 @@
 
 Gladiator *gladiator; // init gladiator
 RobotData gadiatorData; // data of the robots
-uint8_t ListIds[2];
+uint8_t ListIdsAdvs[2];
 
 void reset();
 void setup(){
     gladiator = new Gladiator(); //gladiator 1, friendly
     gladiator->game->onReset(&reset); // GFA 4.4.1
     gladiator->weapon->initWeapon(WeaponPin::M1, WeaponMode::SERVO); //Sertting the weapong mode of the robot to servo
-    if(gladiator->robot->getData().id == 37){
+    
+    int i = 0;
+    while(i < 2){
+        if (gladiator->game->getPlayingRobotsId().ids[i] != 37 && gladiator->game->getPlayingRobotsId().ids[i] != 40){
+            ListIdsAdvs[i] = gladiator->robot->getData().id;
+            i++;
+        }
+    }
+
+
+    if(gladiator->robot->getData().teamId == 37){
         gladiator->robot->setCalibrationOffset(0.0192, 0.0011, 0);
     }
-    if(gladiator->robot->getData().id == 40){
+    if(gladiator->robot->getData().teamId == 40){
         gladiator->robot->setCalibrationOffset(0.0111, -0.0037, 0);
     }
     
+
+
 }
 
 void reset(){
