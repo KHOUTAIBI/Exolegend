@@ -182,6 +182,8 @@ StateMove control(Gladiator* gladiator) {
             POI = { toAttack.x, toAttack.y };
             baseDistance = distance(gPos, POI);
             reachedPOI = false;
+            while(!toGo.empty()) toGo.pop();
+            toGo.push(squareToCoord(square));
         }
 
         // Adapt the speed to the mode
