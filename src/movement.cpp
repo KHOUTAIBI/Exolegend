@@ -94,6 +94,51 @@ coord frontToGo() {
     return p1;
 }
 
+Position getAllyPos(Gladiator* gladiator) {
+    byte teamId = gladiator->robot->getData().teamId;
+    byte id = gladiator->robot->getData().id;
+    Position result = { -1, -1, -1 };
+
+    
+    uint8_t Listids[4] = {
+        gladiator->game->getPlayingRobotsId().ids[0],
+        gladiator->game->getPlayingRobotsId().ids[1],
+        gladiator->game->getPlayingRobotsId().ids[2],
+        gladiator->game->getPlayingRobotsId().ids[3]
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        RobotData rData = gladiator->game->getOtherRobotData(Listids[i]);
+        if (rData.teamId == teamId && rData.id != id) {
+            result = rData.position; 
+            break;
+        }
+    }
+    return result;
+}
+
+Position attackable(Gladiator* gladiator) {
+    std::pair<float,byte> distAndId = distanceToAllAdvs(gladiator);
+    Position result = { -1, -1, -1 };
+    if (distAndId.first > 0.4) return result;
+    Position posAdv = gladiator->game->getOtherRobotData(distAndId.second).position;
+    Position gPos = gladiator->robot->getData().position;
+    if (abs(posAdv.a - gPos.a) < M_PI * 0.8 &&  gladiator->game->getOtherRobotData(distAndId.second).lifes > 0) {
+        result = posAdv;
+    }
+    return result;
+}
+
+coord positionToCoord(Gladiator* gladiator, Position pos) {
+    float size = gladiator->maze->getSquareSize();
+    byte i = std::floor(pos.x / size);
+    byte j = std::floor(pos.y / size);
+    i = (i > 12) ? 12 : i;
+    j = (j > 12) ? 12 : j;
+
+    return std::make_pair(i, j);
+}
+
 float speed = 0.0f;
 
 StateMove control(Gladiator* gladiator) {
@@ -129,6 +174,16 @@ StateMove control(Gladiator* gladiator) {
             while (!toGo.empty()) toGo.pop();
         }
 
+        Position toAttack = attackable(gladiator);
+        if (toAttack.x != -1) {
+            mode = MODE::FAST;
+            coord co = positionToCoord(gladiator, toAttack);
+            squarePOI = gladiator->maze->getSquare(co.first, co.second);
+            POI = { toAttack.x, toAttack.y };
+            baseDistance = distance(gPos, POI);
+            reachedPOI = false;
+        }
+
         // Adapt the speed to the mode
         switch (mode) {
             case MODE::EXPLORE:
@@ -137,6 +192,7 @@ StateMove control(Gladiator* gladiator) {
             case MODE::FLEE:
             speed = 0.5f;
             break;
+            case MODE::ATTACK:
             case MODE::FAST:
             speed = 0.8f;
             break;
@@ -182,6 +238,15 @@ StateMove control(Gladiator* gladiator) {
             // gladiator->log("Target : %d %d\n", co.first, co.second);
             squarePOI = gladiator->maze->getSquare(co.first, co.second);
             POI = getSquarePosition(squarePOI);
+
+            // Check if my ally is to close to that POI
+            // Position allyPos = getAllyPos(gladiator);
+            // if (allyPos.x != -1 && distance(allyPos, gPos) < 0.5) {
+            //     while (!toGo.empty()) toGo.pop();
+            //     POI = gPos;
+            //     squarePOI = square;
+            //     reachedPOI = false;
+            // }
             // Handle the case where he want to go outside
             if (isOutsideMaze(gladiator, POI)) {
                 POI = { 1.5, 1.5 };
@@ -207,6 +272,10 @@ StateMove control(Gladiator* gladiator) {
             if (currentSquare->danger > 0) {
                 coord co = squareToCoord(currentSquare);
                 BFS(gladiator, co, WANTED::DANGER_FREE, true);
+            }
+            else {
+                coord co = squareToCoord(currentSquare);
+                BFS(gladiator, co, WANTED::DANGER_FREE, false);
             }
         }
     }

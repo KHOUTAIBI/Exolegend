@@ -13,7 +13,8 @@ void attack(Gladiator* gladiator , byte adverId){
     
     // getting position data
     Position gladiatorPosition = gladiator->robot->getData().position;
-    Position gladiatorAdvposition = gladiator->game->getOtherRobotData(adverId).position;  
+    Position gladiatorAdvposition = gladiator->game->getOtherRobotData(adverId).position;
+  
     
     // Move aggressively in high speed when near target and the difference in angle < 50
     // TO CHANGE

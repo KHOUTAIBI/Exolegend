@@ -11,19 +11,11 @@ void setup(){
     gladiator->game->onReset(&reset); // GFA 4.4.1
     gladiator->weapon->initWeapon(WeaponPin::M1, WeaponMode::SERVO); //Sertting the weapong mode of the robot to servo
     
-    int i = 0;
-    while(i < 2){
-        if (gladiator->game->getPlayingRobotsId().ids[i] != 37 && gladiator->game->getPlayingRobotsId().ids[i] != 40){
-            ListIdsAdvs[i] = gladiator->robot->getData().id;
-            i++;
-        }
-    }
 
-
-    if(gladiator->robot->getData().teamId == 37){
+    if(gladiator->robot->getData().id == 37){
         gladiator->robot->setCalibrationOffset(0.0192, 0.0011, 0);
     }
-    if(gladiator->robot->getData().teamId == 40){
+    if(gladiator->robot->getData().id == 40){
         gladiator->robot->setCalibrationOffset(0.0111, -0.0037, 0);
     }
     
@@ -39,6 +31,9 @@ void reset(){
     while (!toGo.empty()) toGo.pop();
     mazeSize = -1;
     haveBeenOut = false;
+    for (int i = 0; i < 4; i++){
+        ListIdsAdvs[i] = 0;
+    }
 }
 
 void loop(){
