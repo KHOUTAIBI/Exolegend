@@ -152,9 +152,11 @@ StateMove control(Gladiator* gladiator) {
                 if (toGo.empty()) {
                     BFS(gladiator, co, WANTED::BOMB, false);
                 }
+                mode = MODE::EXPLORE;
             }
             else if (square->possession == gladiator->robot->getData().teamId) {
                 BFS(gladiator, co, WANTED::FREE_SQUARE, false); // Search for the closest FREE_SQUARE
+                mode = MODE::EXPLORE;
             }
             else {
                 result = StateMove::BOMB;
@@ -166,7 +168,7 @@ StateMove control(Gladiator* gladiator) {
             if (toGo.empty()) {
                 // gladiator->log("STILL EMPTY - DEAD END");
                 toGo.push(std::make_pair(6, 6));
-
+                mode = MODE::FAST;
             }
         }
 
@@ -180,7 +182,6 @@ StateMove control(Gladiator* gladiator) {
             // gladiator->log("Target : %d %d\n", co.first, co.second);
             squarePOI = gladiator->maze->getSquare(co.first, co.second);
             POI = getSquarePosition(squarePOI);
-            mode = MODE::EXPLORE;
             // Handle the case where he want to go outside
             if (isOutsideMaze(gladiator, POI)) {
                 POI = { 1.5, 1.5 };
